@@ -3,18 +3,9 @@
 #include <string.h>
 #include <time.h>
 #include <mpi.h>
-
-//--	A program to generate n number and storing in an array
-//--	and adding these no.'s in Parallel  94/07/07
-//--	TO COMPILE	gcc fname.c
-//--	TO RUN		mpirun -n pp a.out yy zz
-//--	pp (integer) No.of Processors
-//--	yy (integer) No.of input to generate
-//--	zz (integer) Range of input data to be generated randomly
+#include <math.h>
 
 typedef unsigned long long int ull;
-
-static const int RANGE = 100;
 
 void print(ull* arr,int count){
     int i;
@@ -26,7 +17,7 @@ void print(ull* arr,int count){
 
 
 ull next_num(){
-     static ull nxt = 1; // 6*0 + 1
+    static ull nxt = 1; // 6*0 + 1
     if(nxt%6 == 5) // 6*k - 1
         nxt += 2;  // 6*k + 1
     else           // 6*k + 1
@@ -35,6 +26,8 @@ ull next_num(){
 }
 
 int main(int argc, char **argv){
+
+
     // initialize MPI_Init
     int err = MPI_Init(&argc, &argv);
     if (err != MPI_SUCCESS){
@@ -55,10 +48,6 @@ int main(int argc, char **argv){
     if (argc-1 != 1) {MPI_Finalize(); return 0;}
     int n = atoi(argv[1]);
 
-
-    //MPI_Send(AB + start, end-start, MPI_INT, 0, start,MPI_COMM_WORLD);
-    //MPI_Recv(buf, 2*(n*m)/procs, MPI_INT, MPI_ANY_SOURCE,MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
     // master
     if(id == 0){
         ull *primes = (ull*)malloc(1000*1000*sizeof(ull));
@@ -66,18 +55,20 @@ int main(int argc, char **argv){
         int prime_inx = 2;
         int worker = 0; /* worker id */
         ull k;
-		MPI_Status status; // MPI_SOURCE, TAG, ERROR
+        MPI_Status status; // MPI_SOURCE, TAG, ERROR
         // initially add every worker a number to check for beeing a prime
         for(worker = 1; worker < procs; ++worker) {
             k = next_num();
             MPI_Send(&k,1, MPI_UNSIGNED_LONG_LONG, worker, 0, MPI_COMM_WORLD);
         }
         // dynamically give numbers to each worker
-        while((k = next_num()) < n){
+        while(n > 0){
+            k = next_num() ;
             MPI_Recv(primes + prime_inx, 1, MPI_UNSIGNED_LONG_LONG, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             if(primes[prime_inx] != 0)
                 ++prime_inx;
             MPI_Send(&k,1, MPI_UNSIGNED_LONG_LONG, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+            n-- ;
         }
         // terminate workers
         for(worker = 1; worker < procs; ++worker){
@@ -92,16 +83,22 @@ int main(int argc, char **argv){
     }
     // slaves
     else {
-		MPI_Status status; // MPI_SOURCE, TAG, ERROR
+        MPI_Status status; // MPI_SOURCE, TAG, ERROR
         ull k;
         for(;/*ever*/;){
             MPI_Recv(&k, 1, MPI_UNSIGNED_LONG_LONG, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
             if(k == 0) break; // master signaled to terminate
 
             ull i = 1;
-            for(i = 1; (6*i-1) * (6*i-1) <= k; ++i)
-                if(k % (6*i-1) == 0 || k%(6*1+1) == 0) {
-                    k = 0; // k is not a prime number
+            /*for(i = 1; (6*i-1) * (6*i-1) <= k; ++i)
+              if(k % (6*i-1) == 0 || k%(6*i+1) == 0) {
+              k = 0; // k is not a prime number
+              break;
+              }*/
+
+            for(i = 2 ; i*i < k ; i++)
+                if(k % i == 0){
+                    k = 0 ;
                     break;
                 }
 
