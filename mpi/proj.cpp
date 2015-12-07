@@ -51,7 +51,7 @@ void init(int, char**, int&, int&, int&); /* prototype declaration */
 
 bool log(){
     static int counter = 0;
-    return (++counter)%100 == 0;
+    return (++counter)%10 == 0;
     //return true;
 }
 
@@ -62,23 +62,33 @@ int main(int argc, char **argv){
     init(argc, argv, procs,id,n);
 
     if(!id) { /* master */
+        int counter = 0;
         n = n < (procs-1) ? (procs-1) : n;
         cout << "Generationg max(procs, n) = " << n << " prime numbers ..." << endl;
 
         for(int worker = 1; worker < procs; ++worker)
             send(next_num(), worker);
 
-        while(n--) {
+        while(counter < n) {
             int who; /* ? */
             bint bi = receive(who); /* get the result */
 
-            if(log() && bi != zero) /* print to console */
-                cout << who << " => " << bi << endl;
+            if(bi != zero) {
+                counter++;
+                log() && cout << counter << " => " << bi << endl; /* print to console */
+            }
 
             if(n >= procs-1)
                 send(next_num(), who); /* send another number to the same worker */
-            else
-                send(zero, who);       /* send termination signal */
+        }
+
+        /* send termination signal */
+        for(int worker = 1; worker < procs; ++worker) {
+            int who; /* ? */
+            bint bi = receive(who);
+            if(bi != zero)
+                cout << ++counter << " => " << bi << endl;
+            send(zero, who);
         }
     }
     else /* slave */
@@ -90,7 +100,7 @@ int main(int argc, char **argv){
                 bi = zero;
             send(bi, 0);
         }
-    cout << "done " << id << endl;
+    //cout << "done " << id << endl;
 
     MPI_Finalize();
     return 0;

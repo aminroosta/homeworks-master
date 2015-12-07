@@ -10,9 +10,7 @@ typedef unsigned short uint16;
 typedef unsigned long uint32;
 typedef unsigned long long uint64;
 
-#ifndef max_digits_allowed
 #define max_digits_allowed 1000
-#endif
 
 template <typename T> struct big_int; /* forward declaration */
 
@@ -138,6 +136,23 @@ struct big_int {
 				high = cur;
 		}
 		return cur*A == *this;
+	}
+
+	big_int sqrt() const {
+		big_int<T> low = 1, high = from_power_two(arr.size() * shift);
+		big_int<T> cur = 0;
+		while (true) {
+			cur = (low + high);
+			cur >>= 1; /* divide by two */
+			if (cur == low)
+				return cur;
+
+			if (cur*cur <= *this)
+				low = cur;
+			else
+				high = cur;
+		}
+		return cur;
 	}
 };
 
@@ -290,8 +305,9 @@ void test_six() {
 
 template<typename T>
 bool is_prime(const big_int<T>& A) {
-	T to_add = 2;
-	for(big_int<T> bi = 5; bi*bi <= A; bi += to_add) {
+	T to_add = 4;
+	big_int<T> sq = A.sqrt();
+	for(big_int<T> bi = 5; bi <= sq; bi += to_add) {
 		if (A.is_multiplicant_of(bi))
 			return false;
 		to_add = (to_add == 2) ? 4 : 2;
@@ -300,15 +316,13 @@ bool is_prime(const big_int<T>& A) {
 }
 
 void test_seven() {
-    typedef uint64 _type;
-	big_int<_type> till = 100;
+	big_int<uint8> till = 100;
 	//till = till * till; // 10,000
 
-	_type to_add = 2;
-	for (big_int<_type> bi = 5; bi <= till; bi += to_add) {
+	uint8 to_add = 4;
+	for (big_int<uint8> bi = 5; bi <= till; bi += to_add) {
 		if (is_prime(bi))
-			cout << "=> " << bi << endl;
+			cout << bi << endl;
 		to_add = (to_add == 2) ? 4 : 2;
 	}
 }
-
