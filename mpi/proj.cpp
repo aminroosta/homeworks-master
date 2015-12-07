@@ -51,8 +51,8 @@ void init(int, char**, int&, int&, int&); /* prototype declaration */
 
 bool log(){
     static int counter = 0;
-    return (++counter)%10 == 0;
-    //return true;
+    //return (++counter)%100 == 0;
+    return true;
 }
 
 int main(int argc, char **argv){
