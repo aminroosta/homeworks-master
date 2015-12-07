@@ -49,11 +49,6 @@ bint receive(){ int dummy; return receive(dummy); }
 
 void init(int, char**, int&, int&, int&); /* prototype declaration */
 
-bool log(){
-    static int counter = 0;
-    //return (++counter)%100 == 0;
-    return true;
-}
 
 int main(int argc, char **argv){
     const bint zero = 0;
@@ -75,7 +70,8 @@ int main(int argc, char **argv){
 
             if(bi != zero) {
                 counter++;
-                log() && cout << counter << " => " << bi << endl; /* print to console */
+                (counter%10000 == 0) && cerr << counter << " => " << bi << endl; /* print to console */
+                (counter%1000 == 0) && cout << counter << " => " << bi << endl; /* print to file */
             }
 
             if(n >= procs-1)
