@@ -70,7 +70,7 @@ int main(int argc, char **argv){
 
             if(bi != zero) {
                 counter++;
-                (counter%10000 == 0) && cerr << counter << " => " << bi << endl; /* print to console */
+                (counter%1 == 0) && cerr << counter << " => " << bi << endl; /* print to console */
                 (counter%1000 == 0) && cout << counter << " => " << bi << endl; /* print to file */
             }
 
