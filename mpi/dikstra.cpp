@@ -105,8 +105,8 @@ int main(int argc, char **argv) {
             if(tmp.second == -1) break;
             v = tmp.second, w = tmp.first;
             pii ret(inf/4,-1);
-            repse(u,id,n,procs-1) {
-                //for(int u = id; u <=n; u += procs-1)
+            //repse(u,id,n,procs-1) {
+            for(int u = id; u <=n; u += procs-1)
                 if(adj[v][u] && (w + adj[v][u] <= dist[u])) {
                      dist[u] = w + adj[v][u];
                      if(dist[u] < ret.first)
