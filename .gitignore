@@ -1,3 +1,6 @@
 **/*.out
 **/*.swp
 *.swp
+OxFord/*
+!OxFord/input
+!OxFord/asset_management.cpp
