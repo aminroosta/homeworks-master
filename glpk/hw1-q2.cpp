@@ -1,17 +1,17 @@
 /*
- * xij: how many hours product i is run on machine j
+ * xij: how many of product i is run on machine j
   minimize
-        z = 4*x11  + 4*x12  + 5*x13 + 7*x14  +
-        6*x21  + 7*x22  + 5*x23 + 6*x24  +
-        12*x31 + 10*x32 + 8*x33 + 11*x34
+        z = 4*x11*.3  + 4*x12*.25  + 5*x13*.2 + 7*x14*.2  +
+        6*x21*.2  + 7*x22*.3  + 5*x23*.2 + 6*x24*.25  +
+        12*x31*.8 + 10*x32*.6 + 8*x33*.6 + 11*x34*.5
   subject to
-    p1 = .3*x11 + .25*x12 + .2*x13 + .2*x14
-    p2 = .2*x21 + .3*x22  + .2*x23 + .25*x24
-    p3 = .8*x31 + .6*x32  + .6*x33 + .5*x34
-    m1 = x11 + x21 + x31
-    m2 = x12 + x22 + x32
-    m3 = x13 + x23 + x33
-    m4 = x14 + x24 + x34
+    p1 = x11 + x12 + x13 + x14
+    p2 = x21 + x22  + x23 + x24
+    p3 = x31 + x32  + x33 + x34
+    m1 = x11*.3 + x21*.2 + x31*.8
+    m2 = x12*.25 + x22*.3 + x32*.6
+    m3 = x13*.2 + x23*.2 + x33*.6
+    m4 = x14*.2 + x24*.25 + x34*.5
   and bounds of variables
     p1 >= 3000
     p2 >= 6000
@@ -116,27 +116,55 @@ struct problem {
     }
 };
 
-
 int main(void) {
     problem p = problem("homework 1 - question 2");
     p.minimize();
-    p.row("p").value(1000*1000.0).low();
-    p.row("q").value(500*1000.0).low();
-    p.row("r").value(300*1000.0).low();
-    p.col("x1").value(0.0).low().coefitent(20.0).as_integer();
-    p.col("x2").value(0.0).low().coefitent(15.0).as_integer();
+    p.row("p1").value(3000.0).low();
+    p.row("p2").value(6000.0).low();
+    p.row("p3").value(4000.0).low();
+    p.row("m1").value(1500.0).up();
+    p.row("m2").value(1200.0).up();
+    p.row("m3").value(1500.0).up();
+    p.row("m4").value(2000.0).up();
+
+    p.col("x11").value(0.0).low().coefitent(4.0*.3).as_integer();
+    p.col("x12").value(0.0).low().coefitent(4.0*.25).as_integer();
+    p.col("x13").value(0.0).low().coefitent(5.0*.2).as_integer();
+    p.col("x14").value(0.0).low().coefitent(7.0*.2).as_integer();
+
+    p.col("x21").value(0.0).low().coefitent(6.0*.2).as_integer();
+    p.col("x22").value(0.0).low().coefitent(7.0*.3).as_integer();
+    p.col("x23").value(0.0).low().coefitent(5.0*.2).as_integer();
+    p.col("x24").value(0.0).low().coefitent(6.0*.25).as_integer();
+
+    p.col("x31").value(0.0).low().coefitent(12.0*.8).as_integer();
+    p.col("x32").value(0.0).low().coefitent(10.0*.6).as_integer();
+    p.col("x33").value(0.0).low().coefitent(8.0*.6).as_integer();
+    p.col("x34").value(0.0).low().coefitent(11.0*.5).as_integer();
+
     p.apply_entries();
 
     vector<vector<double> > mtx = {
-      {.4, .32},
-      {.2, .4},
-      {.35, .2}
+      {1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+      {0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
+      {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1},
+      {.3, 0, 0, 0, .2, 0, 0, 0, .8, 0, 0, 0}, // m1
+      {0, .25, 0, 0, 0, .3, 0, 0, 0, .6, 0, 0}, // m2
+      {0, 0, .2, 0, 0, 0, .2, 0, 0, 0, .6, 0}, // m3
+      {0, 0, 0, .2, 0, 0, 0, .25, 0, 0, 0, .5}, // m4
     };
     p.matrix(mtx);
     double z = p.solve();
-    double x1 = p.col_value(1);
-    double x2 = p.col_value(2);
-    printf("\nz = %g; x1 = %g; x2 = %g;\n", z, x1, x2);
+    double x11 = p.col_value(1); double x12 = p.col_value(2);
+    double x13 = p.col_value(3); double x14 = p.col_value(4);
+    double x21 = p.col_value(5); double x22 = p.col_value(6);
+    double x23 = p.col_value(7); double x24 = p.col_value(8);
+    double x31 = p.col_value(9); double x32 = p.col_value(10);
+    double x33 = p.col_value(11); double x34 = p.col_value(12);
+    printf("\nz = %g;\n"
+    " x11 = %g; x12 = %g; x13 = %g; x14 = %g;\n"
+    " x21 = %g; x22 = %g; x23 = %g; x24 = %g;\n"
+    " x31 = %g; x32 = %g; x33 = %g; x34 = %g;\n",
+    z, x11, x12, x13, x14, x21, x22, x23, x24, x31, x32, x33, x34);
     return 0;
 }
-/* eof */
